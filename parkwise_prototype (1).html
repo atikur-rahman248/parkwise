@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ParkWise — Interactive Prototype</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --navy:#12203E;
+  --navy-2:#1B2E56;
+  --teal:#00C2A8;
+  --teal-dim:#00C2A822;
+  --amber:#F5A623;
+  --red:#E5484D;
+  --bg:#EEF1F6;
+  --card:#FFFFFF;
+  --ink:#12203E;
+  --ink-dim:#6B7488;
+  --line:#E3E7EF;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Inter',sans-serif;
+  background:
+    radial-gradient(circle at 15% 10%, #1B2E5615, transparent 40%),
+    var(--bg);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:32px 16px 60px;
+  color:var(--ink);
+}
+h1{font-family:'Space Grotesk',sans-serif;}
+
+/* ---- Prototype chrome ---- */
+.board-label{
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:13px;
+  letter-spacing:.04em;
+  color:var(--ink-dim);
+  text-transform:uppercase;
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.board-label .dot{width:7px;height:7px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px var(--teal-dim);}
+
+.header{
+  text-align:center;
+  margin-bottom:22px;
+}
+.header h1{font-size:22px;margin:0 0 4px;color:var(--navy);}
+.header p{margin:0;color:var(--ink-dim);font-size:13.5px;}
+
+.stage{
+  display:flex;
+  gap:26px;
+  align-items:flex-start;
+  flex-wrap:wrap;
+  justify-content:center;
+  max-width:960px;
+}
+
+/* ---- Phone frame ---- */
+.frame-wrap{position:relative;}
+.phone{
+  width:320px;
+  height:660px;
+  background:var(--card);
+  border-radius:38px;
+  border:8px solid var(--navy);
+  box-shadow:0 30px 60px -20px rgba(18,32,62,.35), 0 0 0 1px #ffffff;
+  overflow:hidden;
+  position:relative;
+}
+.notch{
+  position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:120px;height:22px;background:var(--navy);
+  border-radius:0 0 16px 16px; z-index:50;
+}
+.screen{
+  width:100%;height:100%;
+  display:none;
+  flex-direction:column;
+  animation:fade .25s ease;
+}
+.screen.active{display:flex;}
+@keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.statusbar{
+  height:34px;flex:0 0 auto;
+  display:flex;align-items:flex-end;justify-content:space-between;
+  padding:0 20px 6px;font-size:11px;font-weight:600;color:var(--navy);
+}
+
+/* ---- Screen content scaffolding ---- */
+.scr-body{flex:1;overflow-y:auto;padding:14px 18px 90px;}
+.scr-body::-webkit-scrollbar{display:none;}
+.top-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;color:var(--navy);margin:4px 0 2px;}
+.top-sub{font-size:12.5px;color:var(--ink-dim);margin:0 0 16px;}
+
+.btn{
+  border:none;border-radius:14px;padding:14px 18px;
+  font-family:'Inter';font-weight:700;font-size:14.5px;
+  cursor:pointer;width:100%;text-align:center;
+  transition:transform .12s ease;
+}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-amber{background:var(--amber);color:var(--navy);}
+.btn-teal{background:var(--teal);color:#052A24;}
+.btn-outline{background:#fff;border:1.5px solid var(--line);color:var(--navy);}
+.btn-ghost{background:transparent;color:var(--ink-dim);font-weight:600;font-size:13px;padding:8px;}
+
+.input{
+  width:100%;padding:13px 14px;border-radius:12px;border:1.5px solid var(--line);
+  font-family:'Inter';font-size:14px;margin-bottom:12px;background:#F8F9FC;color:var(--ink);
+}
+.input:focus{outline:none;border-color:var(--teal);}
+label.field-label{font-size:11.5px;font-weight:700;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.03em;margin-bottom:6px;display:block;}
+
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 2px 10px -6px rgba(18,32,62,.15);}
+
+/* bottom nav */
+.bottomnav{
+  position:absolute;bottom:0;left:0;right:0;
+  background:#fff;border-top:1px solid var(--line);
+  display:flex;justify-content:space-around;align-items:center;
+  padding:10px 0 16px;
+}
+.navitem{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--ink-dim);font-weight:600;cursor:pointer;}
+.navitem.active{color:var(--teal);}
+.navicon{width:20px;height:20px;}
+
+/* map hero */
+.map-hero{
+  height:220px;border-radius:18px;
+  background:
+    linear-gradient(180deg, rgba(18,32,62,0) 40%, rgba(18,32,62,.55) 100%),
+    repeating-linear-gradient(0deg, #DCE3F0 0 2px, #EAF0FA 2px 40px),
+    repeating-linear-gradient(90deg, #DCE3F0 0 2px, #EAF0FA 2px 40px);
+  position:relative;overflow:hidden;margin-bottom:14px;
+  border:1px solid var(--line);
+}
+.pin{position:absolute;width:14px;height:14px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.25);}
+.pin.free{background:var(--teal);} .pin.busy{background:var(--red);}
+.pin-you{position:absolute;width:16px;height:16px;border-radius:50%;background:var(--navy);border:3px solid #fff;box-shadow:0 0 0 6px rgba(18,32,62,.18);}
+.map-badge{position:absolute;left:14px;bottom:12px;background:rgba(255,255,255,.92);backdrop-filter:blur(4px);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:700;color:var(--navy);}
+
+/* spot list item */
+.spot-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;margin-bottom:10px;background:#fff;cursor:pointer;}
+.spot-row:hover{border-color:var(--teal);}
+.spot-icon{width:44px;height:44px;border-radius:10px;background:var(--teal-dim);display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:18px;}
+.spot-meta{flex:1;}
+.spot-name{font-weight:700;font-size:14px;color:var(--navy);}
+.spot-info{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+.badge{font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.02em;}
+.badge-live{background:var(--teal-dim);color:#04665A;}
+.badge-conf{background:#FFF3E0;color:#A15C00;}
+
+/* payment */
+.pay-option{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:10px;cursor:pointer;}
+.pay-option.selected{border-color:var(--teal);background:var(--teal-dim);}
+.pay-logo{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:11px;}
+
+/* receipt */
+.receipt-code{
+  font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px;letter-spacing:.08em;
+  text-align:center;color:var(--navy);background:#F8F9FC;border:1.5px dashed var(--line);
+  border-radius:14px;padding:16px;margin:10px 0 16px;
+}
+.success-ring{
+  width:74px;height:74px;border-radius:50%;background:var(--teal-dim);
+  display:flex;align-items:center;justify-content:center;margin:6px auto 14px;
+}
+
+.progress-dots{display:flex;gap:6px;justify-content:center;margin:10px 0 16px;}
+.progress-dots span{width:6px;height:6px;border-radius:50%;background:var(--line);}
+.progress-dots span.on{background:var(--teal);width:18px;border-radius:4px;}
+
+.divider{height:1px;background:var(--line);margin:14px 0;}
+.row-between{display:flex;justify-content:space-between;align-items:center;}
+
+/* nav row of prototype under phone */
+.captions{width:320px;text-align:center;margin-top:14px;font-size:12px;color:var(--ink-dim);min-height:34px;}
+.captions b{color:var(--navy);}
+
+/* ---- Desktop dashboard frame (Operator / Admin) ---- */
+.dash-frame{
+  width:560px;
+  background:var(--card);
+  border-radius:16px;
+  border:1px solid var(--line);
+  box-shadow:0 30px 60px -20px rgba(18,32,62,.25);
+  overflow:hidden;
+}
+.browser-bar{
+  height:38px;background:#F3F5F9;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:6px;padding:0 14px;
+}
+.browser-dot{width:9px;height:9px;border-radius:50%;background:#D9DEE8;}
+.browser-url{
+  margin-left:10px;background:#fff;border:1px solid var(--line);border-radius:8px;
+  font-size:11px;color:var(--ink-dim);padding:4px 10px;flex:1;max-width:260px;
+}
+.dash-tabs{display:flex;gap:4px;padding:14px 20px 0;border-bottom:1px solid var(--line);}
+.dash-tab{
+  padding:10px 16px;font-size:13px;font-weight:700;color:var(--ink-dim);
+  cursor:pointer;border-bottom:2.5px solid transparent;
+}
+.dash-tab.active{color:var(--navy);border-color:var(--teal);}
+.dash-panel{display:none;padding:20px;height:560px;overflow-y:auto;}
+.dash-panel.active{display:block;}
+.dash-panel::-webkit-scrollbar{display:none;}
+
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.stat-card{background:#F8F9FC;border:1px solid var(--line);border-radius:12px;padding:12px;}
+.stat-num{font-family:'Space Grotesk';font-weight:700;font-size:19px;color:var(--navy);}
+.stat-lbl{font-size:10.5px;color:var(--ink-dim);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.02em;}
+
+.sec-title{font-family:'Space Grotesk';font-weight:700;font-size:14px;color:var(--navy);margin:18px 0 10px;}
+.sec-title:first-child{margin-top:0;}
+
+.occ-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.occ-row:last-child{border-bottom:none;}
+.occ-name{width:150px;font-size:12.5px;font-weight:700;color:var(--navy);flex:0 0 auto;}
+.occ-bar-track{flex:1;height:8px;background:#EDEFF4;border-radius:6px;overflow:hidden;}
+.occ-bar-fill{height:100%;background:var(--teal);border-radius:6px;}
+.occ-pct{width:38px;text-align:right;font-size:11.5px;font-weight:700;color:var(--ink-dim);}
+
+.dtable{width:100%;border-collapse:collapse;}
+.dtable th{text-align:left;font-size:10.5px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.02em;padding:6px 8px;border-bottom:1.5px solid var(--line);}
+.dtable td{font-size:12.5px;padding:9px 8px;border-bottom:1px solid var(--line);color:var(--ink);}
+.pill{font-size:10px;font-weight:800;padding:3px 9px;border-radius:20px;}
+.pill-green{background:var(--teal-dim);color:#04665A;}
+.pill-amber{background:#FFF3E0;color:#A15C00;}
+.pill-red{background:#FDE7E8;color:#B3131B;}
+.pill-grey{background:#EDEFF4;color:var(--ink-dim);}
+.mini-btn{font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;border:1.5px solid var(--line);background:#fff;cursor:pointer;color:var(--navy);}
+.mini-btn.primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+
+.spot-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-bottom:6px;}
+.spot-cell{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:#fff;}
+.sc-free{background:var(--teal);} .sc-occ{background:var(--red);} .sc-hold{background:var(--amber);color:#4A2E00;}
+
+.ml-card{background:linear-gradient(135deg,var(--navy),#1B2E56);color:#fff;border-radius:14px;padding:16px;}
+.ml-card .stat-num{color:#fff;}
+.ml-card .stat-lbl{color:#B9C2DB;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>ParkWise — Clickable Prototype</h1>
+  <p>Driver app + Operator/Admin dashboards · derived from ParkWise SRS &amp; System Design (Sequence Diagram 1 &amp; 2, Class Diagram, DFD)</p>
+</div>
+
+<div class="stage">
+  <div class="frame-wrap">
+    <div class="board-label"><span class="dot"></span> Frame — ParkWise / Driver App</div>
+    <div class="phone">
+      <div class="notch"></div>
+
+      <!-- SCREEN 1: LOGIN -->
+      <div class="screen active" id="scr-login">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <div style="text-align:center;margin:26px 0 30px;">
+            <div style="width:56px;height:56px;border-radius:16px;background:var(--navy);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M6 3h9a4 4 0 0 1 0 8H9v10H6V3Zm3 3v5h6a2.5 2.5 0 0 0 0-5H9Z" fill="var(--teal)"/></svg>
+            </div>
+            <div class="top-title" style="text-align:center;">ParkWise</div>
+            <div class="top-sub" style="text-align:center;">Smart parking for the city. Find, reserve, pay — done.</div>
+          </div>
+          <label class="field-label">Mobile Number</label>
+          <input class="input" placeholder="01XXX-XXXXXX" value="01711-234567">
+          <label class="field-label">Password</label>
+          <input class="input" type="password" value="••••••••">
+          <button class="btn btn-primary" onclick="go('scr-home')">Log In</button>
+          <button class="btn btn-ghost" style="margin-top:8px;">Create a Driver account</button>
+          <div class="divider"></div>
+          <div style="font-size:11px;color:var(--ink-dim);text-align:center;">Roles supported per Class Diagram: Driver · Parking Operator · Admin · Traffic Authority</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: HOME / SEARCH (Seq Diagram 1, steps 1-8) -->
+      <div class="screen" id="scr-home">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <div class="top-title">Find parking</div>
+          <div class="top-sub">Live availability near Dhanmondi, Dhaka</div>
+          <input class="input" placeholder="Search destination..." value="Dhanmondi 27, Dhaka">
+          <div class="map-hero">
+            <div class="pin-you" style="left:150px;top:120px;"></div>
+            <div class="pin free" style="left:70px;top:60px;" onclick="openSpot('A12')"></div>
+            <div class="pin free" style="left:210px;top:80px;" onclick="openSpot('B04')"></div>
+            <div class="pin busy" style="left:100px;top:160px;"></div>
+            <div class="pin free" style="left:240px;top:150px;" onclick="openSpot('C21')"></div>
+            <div class="map-badge">🟢 12 spots free within 500m</div>
+          </div>
+          <div class="row-between" style="margin-bottom:10px;">
+            <div style="font-weight:700;font-size:13.5px;color:var(--navy);">Nearby spots</div>
+            <div style="font-size:11px;color:var(--ink-dim);">AI-predicted availability ⓘ</div>
+          </div>
+
+          <div class="spot-row" onclick="openSpot('A12')">
+            <div class="spot-icon">🅿️</div>
+            <div class="spot-meta">
+              <div class="spot-name">City Center Lot A · Spot A12</div>
+              <div class="spot-info">180m away · ৳30/hr</div>
+            </div>
+            <div><span class="badge badge-live">FREE</span></div>
+          </div>
+          <div class="spot-row" onclick="openSpot('B04')">
+            <div class="spot-icon">🅿️</div>
+            <div class="spot-meta">
+              <div class="spot-name">Rapa Plaza Basement · Spot B04</div>
+              <div class="spot-info">340m away · ৳25/hr</div>
+            </div>
+            <div><span class="badge badge-conf">92% conf.</span></div>
+          </div>
+          <div class="spot-row" onclick="openSpot('C21')">
+            <div class="spot-icon">🅿️</div>
+            <div class="spot-meta">
+              <div class="spot-name">Green Road Open Lot · Spot C21</div>
+              <div class="spot-info">410m away · ৳20/hr</div>
+            </div>
+            <div><span class="badge badge-live">FREE</span></div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem nav-home active" onclick="go('scr-home')"><span class="navicon">🔍</span>Search</div>
+          <div class="navitem nav-history" onclick="go('scr-history')"><span class="navicon">🕓</span>Bookings</div>
+          <div class="navitem nav-vehicles" onclick="go('scr-vehicles')"><span class="navicon">🚗</span>Vehicles</div>
+          <div class="navitem nav-profile" onclick="go('scr-profile')"><span class="navicon">👤</span>Profile</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: SPOT DETAIL / RESERVE (Seq 1 step 9-13) -->
+      <div class="screen" id="scr-spot">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <button class="btn-ghost" style="text-align:left;padding:0 0 10px;" onclick="go('scr-home')">← Back to search</button>
+          <div class="top-title" id="spot-title">City Center Lot A</div>
+          <div class="top-sub" id="spot-sub">Spot A12 · covered · CCTV monitored</div>
+
+          <div class="card">
+            <div class="row-between">
+              <div style="font-size:12.5px;color:var(--ink-dim);">Status</div>
+              <span class="badge badge-live">AVAILABLE NOW</span>
+            </div>
+            <div class="divider"></div>
+            <div class="row-between"><div style="font-size:12.5px;color:var(--ink-dim);">AI availability confidence</div><b style="font-size:13px;">96%</b></div>
+            <div class="row-between" style="margin-top:6px;"><div style="font-size:12.5px;color:var(--ink-dim);">Rate</div><b style="font-size:13px;">৳30 / hour</b></div>
+            <div class="row-between" style="margin-top:6px;"><div style="font-size:12.5px;color:var(--ink-dim);">Distance</div><b style="font-size:13px;">180m · 3 min walk</b></div>
+          </div>
+
+          <label class="field-label">Reserve duration</label>
+          <div style="display:flex;gap:8px;margin-bottom:14px;">
+            <button class="btn btn-outline dur-btn" data-hr="1" onclick="selectDuration(this)" style="padding:10px;">1 hr</button>
+            <button class="btn btn-teal dur-btn" data-hr="2" onclick="selectDuration(this)" style="padding:10px;">2 hr</button>
+            <button class="btn btn-outline dur-btn" data-hr="4" onclick="selectDuration(this)" style="padding:10px;">4 hr</button>
+          </div>
+
+          <label class="field-label">Vehicle</label>
+          <div class="card" style="display:flex;align-items:center;gap:10px;padding:10px 14px;margin-bottom:16px;">
+            <div style="font-size:18px;">🚘</div>
+            <div>
+              <div style="font-weight:700;font-size:13px;">Toyota Axio</div>
+              <div style="font-size:11px;color:var(--ink-dim);">DHAKA-METRO-GA 12-3456</div>
+            </div>
+          </div>
+
+          <button class="btn btn-amber" id="reserve-btn" onclick="go('scr-confirm')">Reserve Spot · ৳60</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: RESERVATION CONFIRMED -> choose payment (Seq1 13-15) -->
+      <div class="screen" id="scr-confirm">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <div class="top-title">Confirm &amp; pay</div>
+          <div class="top-sub">Spot reserved for 10 minutes · booking code pending</div>
+
+          <div class="card">
+            <div class="row-between"><span style="font-size:12.5px;color:var(--ink-dim);">Spot</span><b style="font-size:13px;">A12 · City Center Lot A</b></div>
+            <div class="row-between" style="margin-top:6px;"><span style="font-size:12.5px;color:var(--ink-dim);">Duration</span><b style="font-size:13px;" id="confirm-duration">2 hours</b></div>
+            <div class="divider"></div>
+            <div class="row-between"><span style="font-size:13px;font-weight:700;">Total</span><span style="font-size:16px;font-weight:800;color:var(--navy);" id="confirm-total">৳60.00</span></div>
+          </div>
+
+          <label class="field-label">Pay with</label>
+          <div class="pay-option selected" onclick="selectPay(this)">
+            <div class="pay-logo" style="background:#E2136E;">bK</div>
+            <div><div style="font-weight:700;font-size:13.5px;">bKash</div><div style="font-size:11px;color:var(--ink-dim);">01711-234567</div></div>
+          </div>
+          <div class="pay-option" onclick="selectPay(this)">
+            <div class="pay-logo" style="background:#F7941E;">N</div>
+            <div><div style="font-weight:700;font-size:13.5px;">Nagad</div><div style="font-size:11px;color:var(--ink-dim);">01711-234567</div></div>
+          </div>
+          <div class="pay-option" onclick="selectPay(this)">
+            <div class="pay-logo" style="background:var(--navy);">💳</div>
+            <div><div style="font-weight:700;font-size:13.5px;">Card</div><div style="font-size:11px;color:var(--ink-dim);">Visa / Mastercard</div></div>
+          </div>
+
+          <button class="btn btn-primary" style="margin-top:8px;" id="pay-btn" onclick="go('scr-receipt')">Pay ৳60.00</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 5: RECEIPT (Seq1 16-20) -->
+      <div class="screen" id="scr-receipt">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <div class="success-ring">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#04665A" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="top-title" style="text-align:center;">Payment successful</div>
+          <div class="top-sub" style="text-align:center;">Spot locked for your arrival · Digital receipt sent</div>
+
+          <div class="receipt-code">PW-7F23-A12</div>
+
+          <div class="card">
+            <div class="row-between"><span style="font-size:12px;color:var(--ink-dim);">Spot</span><b style="font-size:13px;">A12 · City Center Lot A</b></div>
+            <div class="row-between" style="margin-top:6px;"><span style="font-size:12px;color:var(--ink-dim);">Paid via</span><b style="font-size:13px;" id="paid-via">bKash</b></div>
+            <div class="row-between" style="margin-top:6px;"><span style="font-size:12px;color:var(--ink-dim);">Amount</span><b style="font-size:13px;">৳60.00</b></div>
+            <div class="row-between" style="margin-top:6px;"><span style="font-size:12px;color:var(--ink-dim);">Valid until</span><b style="font-size:13px;">11:45 AM</b></div>
+          </div>
+
+          <button class="btn btn-teal" onclick="go('scr-nav')">Navigate to spot</button>
+          <button class="btn btn-ghost" onclick="go('scr-home')">Back to home</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 6: NAVIGATE -->
+      <div class="screen" id="scr-nav">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body" style="padding-top:14px;">
+          <div class="map-hero" style="height:340px;">
+            <div class="pin-you" style="left:60px;top:220px;"></div>
+            <div class="pin free" style="left:220px;top:70px;"></div>
+            <svg style="position:absolute;left:0;top:0;" width="320" height="340">
+              <path d="M68 220 C 120 180, 160 120, 222 78" stroke="var(--teal)" stroke-width="4" stroke-dasharray="2 10" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="map-badge">🧭 3 min · 180m to Spot A12</div>
+          </div>
+          <div class="card" style="margin-top:14px;">
+            <div class="row-between"><span style="font-size:12.5px;color:var(--ink-dim);">Booking code</span><b>PW-7F23-A12</b></div>
+          </div>
+          <button class="btn btn-primary" onclick="go('scr-home')">I've arrived — End session</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 7: BOOKING HISTORY -->
+      <div class="screen" id="scr-history">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <div class="top-title">Your bookings</div>
+          <div class="top-sub">History &amp; active reservations</div>
+          <div class="card" onclick="openBooking('active')" style="cursor:pointer;">
+            <div class="row-between"><b style="font-size:13.5px;">A12 · City Center Lot A</b><span class="badge badge-live">ACTIVE</span></div>
+            <div style="font-size:11.5px;color:var(--ink-dim);margin-top:4px;">Today · 9:45 AM – 11:45 AM · ৳60.00</div>
+          </div>
+          <div class="card" onclick="openBooking('d08')" style="opacity:.6;cursor:pointer;">
+            <div class="row-between"><b style="font-size:13.5px;">D08 · Bashundhara City</b><span class="badge" style="background:#EDEFF4;color:var(--ink-dim);">COMPLETED</span></div>
+            <div style="font-size:11.5px;color:var(--ink-dim);margin-top:4px;">28 Jul · 3:00 PM – 5:00 PM · ৳50.00</div>
+          </div>
+          <div class="card" onclick="openBooking('b04')" style="opacity:.6;cursor:pointer;">
+            <div class="row-between"><b style="font-size:13.5px;">B04 · Rapa Plaza</b><span class="badge" style="background:#EDEFF4;color:var(--ink-dim);">COMPLETED</span></div>
+            <div style="font-size:11.5px;color:var(--ink-dim);margin-top:4px;">25 Jul · 10:00 AM – 12:00 PM · ৳50.00</div>
+          </div>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem nav-home" onclick="go('scr-home')"><span class="navicon">🔍</span>Search</div>
+          <div class="navitem nav-history active" onclick="go('scr-history')"><span class="navicon">🕓</span>Bookings</div>
+          <div class="navitem nav-vehicles" onclick="go('scr-vehicles')"><span class="navicon">🚗</span>Vehicles</div>
+          <div class="navitem nav-profile" onclick="go('scr-profile')"><span class="navicon">👤</span>Profile</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 8: BOOKING DETAIL -->
+      <div class="screen" id="scr-booking-detail">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <button class="btn-ghost" style="text-align:left;padding:0 0 10px;" onclick="go('scr-history')">← Back to bookings</button>
+          <div class="top-title" id="bd-title">A12 · City Center Lot A</div>
+          <div class="top-sub" id="bd-sub">Today · 9:45 AM – 11:45 AM</div>
+
+          <div class="card">
+            <div class="row-between"><span style="font-size:12.5px;color:var(--ink-dim);">Booking code</span><b id="bd-code">PW-7F23-A12</b></div>
+            <div class="divider"></div>
+            <div class="row-between"><span style="font-size:12.5px;color:var(--ink-dim);">Status</span><span class="badge badge-live" id="bd-status">ACTIVE</span></div>
+            <div class="row-between" style="margin-top:6px;"><span style="font-size:12.5px;color:var(--ink-dim);">Vehicle</span><b style="font-size:13px;">Toyota Axio · GA 12-3456</b></div>
+            <div class="row-between" style="margin-top:6px;"><span style="font-size:12.5px;color:var(--ink-dim);">Paid via</span><b style="font-size:13px;" id="bd-paid">bKash</b></div>
+            <div class="row-between" style="margin-top:6px;"><span style="font-size:12.5px;color:var(--ink-dim);">Amount</span><b style="font-size:13px;" id="bd-amount">৳60.00</b></div>
+          </div>
+
+          <button class="btn btn-teal" id="bd-nav-btn" onclick="go('scr-nav')">Navigate to spot</button>
+          <button class="btn btn-outline" id="bd-cancel-btn" style="margin-top:8px;color:var(--red);border-color:#F3C9CB;" onclick="cancelBooking()">Cancel reservation</button>
+          <button class="btn btn-ghost" id="bd-feedback-btn" style="display:none;" onclick="go('scr-history')">Submit feedback</button>
+        </div>
+      </div>
+
+      <!-- SCREEN 9: VEHICLES -->
+      <div class="screen" id="scr-vehicles">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <div class="top-title">Your vehicles</div>
+          <div class="top-sub">Driver.vehicles — used when reserving a spot</div>
+
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:22px;">🚘</div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:13.5px;">Toyota Axio</div>
+              <div style="font-size:11px;color:var(--ink-dim);">DHAKA-METRO-GA 12-3456 · Car</div>
+            </div>
+            <span class="badge badge-live">DEFAULT</span>
+          </div>
+          <div class="card" style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:22px;">🏍️</div>
+            <div style="flex:1;">
+              <div style="font-weight:700;font-size:13.5px;">Yamaha FZS</div>
+              <div style="font-size:11px;color:var(--ink-dim);">DHAKA-METRO-HA 45-7788 · Bike</div>
+            </div>
+            <button class="mini-btn" onclick="setDefaultVehicle(this)">Set default</button>
+          </div>
+
+          <button class="btn btn-outline" style="margin-top:6px;" onclick="addVehicle()">+ Add a vehicle</button>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem nav-home" onclick="go('scr-home')"><span class="navicon">🔍</span>Search</div>
+          <div class="navitem nav-history" onclick="go('scr-history')"><span class="navicon">🕓</span>Bookings</div>
+          <div class="navitem nav-vehicles active" onclick="go('scr-vehicles')"><span class="navicon">🚗</span>Vehicles</div>
+          <div class="navitem nav-profile" onclick="go('scr-profile')"><span class="navicon">👤</span>Profile</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 10: PROFILE -->
+      <div class="screen" id="scr-profile">
+        <div class="statusbar"><span>9:41</span><span>●●●●  🔋</span></div>
+        <div class="scr-body">
+          <div style="text-align:center;margin:10px 0 18px;">
+            <div style="width:64px;height:64px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:20px;margin:0 auto 10px;">AR</div>
+            <div style="font-weight:700;font-size:16px;color:var(--navy);">Atikur Rahman</div>
+            <div style="font-size:12px;color:var(--ink-dim);">Driver · Member since Jun 2026</div>
+          </div>
+
+          <label class="field-label">Mobile</label>
+          <input class="input" id="prof-mobile" value="01711-234567">
+          <label class="field-label">Email</label>
+          <input class="input" id="prof-email" value="atikur@example.com">
+          <label class="field-label">Home location</label>
+          <input class="input" id="prof-loc" value="Savar, Dhaka">
+          <button class="btn btn-primary" onclick="saveProfile()">Save changes</button>
+          <div id="prof-saved" style="display:none;text-align:center;font-size:12px;color:#04665A;font-weight:700;margin-top:8px;">✓ Profile updated</div>
+
+          <div class="divider"></div>
+          <div class="row-between" style="padding:6px 0;"><span style="font-size:13px;font-weight:600;">Notifications</span><span class="badge badge-live">ON</span></div>
+          <div class="row-between" style="padding:6px 0;"><span style="font-size:13px;font-weight:600;">Saved payment: bKash</span><span style="font-size:11px;color:var(--ink-dim);">Change</span></div>
+          <div class="divider"></div>
+          <button class="btn btn-outline" style="color:var(--red);border-color:#F3C9CB;" onclick="go('scr-login')">Log out</button>
+        </div>
+        <div class="bottomnav">
+          <div class="navitem nav-home" onclick="go('scr-home')"><span class="navicon">🔍</span>Search</div>
+          <div class="navitem nav-history" onclick="go('scr-history')"><span class="navicon">🕓</span>Bookings</div>
+          <div class="navitem nav-vehicles" onclick="go('scr-vehicles')"><span class="navicon">🚗</span>Vehicles</div>
+          <div class="navitem nav-profile active" onclick="go('scr-profile')"><span class="navicon">👤</span>Profile</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="frame-wrap">
+    <div class="board-label"><span class="dot"></span> Frame — ParkWise / Operator &amp; Admin Web Dashboard</div>
+    <div class="dash-frame">
+      <div class="browser-bar">
+        <span class="browser-dot"></span><span class="browser-dot"></span><span class="browser-dot"></span>
+        <span class="browser-url" id="browser-url">parkwise.app/operator/dashboard</span>
+      </div>
+      <div class="dash-tabs">
+        <div class="dash-tab active" id="tab-operator" onclick="showDash('operator')">Operator Dashboard</div>
+        <div class="dash-tab" id="tab-admin" onclick="showDash('admin')">Admin Dashboard</div>
+      </div>
+
+      <!-- OPERATOR PANEL -->
+      <div class="dash-panel active" id="panel-operator">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-num">48</div><div class="stat-lbl">Total spots</div></div>
+          <div class="stat-card"><div class="stat-num">31</div><div class="stat-lbl">Occupied</div></div>
+          <div class="stat-card"><div class="stat-num">17</div><div class="stat-lbl">Free now</div></div>
+          <div class="stat-card"><div class="stat-num">৳4,260</div><div class="stat-lbl">Today's revenue</div></div>
+        </div>
+
+        <div class="sec-title">Facility occupancy — ParkingOperator.monitorOccupancy()</div>
+        <div class="occ-row"><div class="occ-name">City Center Lot A</div><div class="occ-bar-track"><div class="occ-bar-fill" style="width:78%;"></div></div><div class="occ-pct">78%</div></div>
+        <div class="occ-row"><div class="occ-name">Rapa Plaza Basement</div><div class="occ-bar-track"><div class="occ-bar-fill" style="width:52%;"></div></div><div class="occ-pct">52%</div></div>
+        <div class="occ-row"><div class="occ-name">Green Road Open Lot</div><div class="occ-bar-track"><div class="occ-bar-fill" style="width:34%;"></div></div><div class="occ-pct">34%</div></div>
+
+        <div class="sec-title">Spot management — City Center Lot A (grid = live camera + booking status)</div>
+        <div class="spot-grid" id="spot-grid"></div>
+        <div style="display:flex;gap:14px;font-size:11px;color:var(--ink-dim);margin:8px 0 4px;">
+          <span><span style="display:inline-block;width:8px;height:8px;background:var(--teal);border-radius:2px;margin-right:5px;"></span>Free</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:var(--red);border-radius:2px;margin-right:5px;"></span>Occupied</span>
+          <span><span style="display:inline-block;width:8px;height:8px;background:var(--amber);border-radius:2px;margin-right:5px;"></span>Reserved / locked</span>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="mini-btn primary">+ Add Spot</button>
+          <button class="mini-btn">Update Pricing</button>
+          <button class="mini-btn">Export Revenue Report</button>
+        </div>
+      </div>
+
+      <!-- ADMIN PANEL -->
+      <div class="dash-panel" id="panel-admin">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-num">1,204</div><div class="stat-lbl">Total users</div></div>
+          <div class="stat-card"><div class="stat-num">36</div><div class="stat-lbl">Operators</div></div>
+          <div class="stat-card"><div class="stat-num">3</div><div class="stat-lbl">Pending verify</div></div>
+          <div class="stat-card"><div class="stat-num">99.8%</div><div class="stat-lbl">System uptime</div></div>
+        </div>
+
+        <div class="sec-title">Verify operators — Admin.verifyOperators()</div>
+        <table class="dtable">
+          <tr><th>Operator</th><th>Facility</th><th>Submitted</th><th>Status</th><th></th></tr>
+          <tr><td>Kamal Traders Ltd.</td><td>Uttara Sector 7 Lot</td><td>1 Aug</td><td><span class="pill pill-amber">Pending</span></td><td><button class="mini-btn primary">Verify</button></td></tr>
+          <tr><td>Green Parking Co.</td><td>Banani Block C</td><td>30 Jul</td><td><span class="pill pill-amber">Pending</span></td><td><button class="mini-btn primary">Verify</button></td></tr>
+          <tr><td>Riya Facilities</td><td>Mirpur DOHS</td><td>29 Jul</td><td><span class="pill pill-amber">Pending</span></td><td><button class="mini-btn primary">Verify</button></td></tr>
+        </table>
+
+        <div class="sec-title">Manage users — Admin.manageUsers() / suspendAccount()</div>
+        <table class="dtable">
+          <tr><th>Name</th><th>Role</th><th>Joined</th><th>Status</th><th></th></tr>
+          <tr><td>Atikur Rahman</td><td>Driver</td><td>12 Jun</td><td><span class="pill pill-green">Active</span></td><td><button class="mini-btn">Suspend</button></td></tr>
+          <tr><td>Kamal Traders Ltd.</td><td>Operator</td><td>1 Aug</td><td><span class="pill pill-grey">Unverified</span></td><td><button class="mini-btn">Suspend</button></td></tr>
+          <tr><td>Fahim Sagor</td><td>Driver</td><td>3 May</td><td><span class="pill pill-red">Suspended</span></td><td><button class="mini-btn primary">Reinstate</button></td></tr>
+        </table>
+
+        <div class="sec-title">AI/ML model — Admin.manageMLModel()</div>
+        <div class="ml-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="stat-num">YOLOv8-parkwise · v2.3</div>
+              <div class="stat-lbl">Detection accuracy 96.4% · last retrained 12 Jul</div>
+            </div>
+            <button class="mini-btn primary" style="background:var(--teal);border-color:var(--teal);color:#052A24;">Retrain Model</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="captions" id="caption">Tap <b>Log In</b> to start the driver flow.</div>
+
+<script>
+const captions = {
+  'scr-login':   'Screen 1 · Login — role-based auth (User → Driver, per Class Diagram).',
+  'scr-home':    'Screen 2 · Search & live map — Sequence 1, steps 1–8: search → predicted availability.',
+  'scr-spot':    'Screen 3 · Spot detail — shows AI/ML confidence score before reservation.',
+  'scr-confirm': 'Screen 4 · Reserve & choose payment — Sequence 1, steps 9–15.',
+  'scr-receipt': 'Screen 5 · Payment success — booking code generated, receipt issued (steps 16–20).',
+  'scr-nav':     'Screen 6 · Navigation to reserved spot using booking code.',
+  'scr-history': 'Screen 7 · Booking history — Driver.viewReservationHistory(). Tap a booking to open it.',
+  'scr-booking-detail': 'Screen 8 · Booking detail — cancel active bookings (Reservation.cancelReservation()).',
+  'scr-vehicles': 'Screen 9 · Vehicles — Driver ◇ Vehicle aggregation from the Class Diagram.',
+  'scr-profile': 'Screen 10 · Profile — User.updateProfile().'
+};
+const navMap = { 'scr-home':'home', 'scr-history':'history', 'scr-booking-detail':'history', 'scr-vehicles':'vehicles', 'scr-profile':'profile' };
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.getElementById('caption').innerHTML = captions[id] || '';
+  document.querySelectorAll('.navitem').forEach(n=>n.classList.remove('active'));
+  const key = navMap[id];
+  if(key){ document.querySelectorAll('.nav-'+key).forEach(n=>n.classList.add('active')); }
+}
+function openSpot(code){
+  const map = {
+    'A12':['City Center Lot A','Spot A12 · covered · CCTV monitored'],
+    'B04':['Rapa Plaza Basement','Spot B04 · covered · CCTV monitored'],
+    'C21':['Green Road Open Lot','Spot C21 · open-air · well-lit']
+  };
+  document.getElementById('spot-title').textContent = map[code][0];
+  document.getElementById('spot-sub').textContent = map[code][1];
+  go('scr-spot');
+}
+const bookingData = {
+  active: { title:'A12 · City Center Lot A', sub:'Today · 9:45 AM – 11:45 AM', code:'PW-7F23-A12', status:'ACTIVE', statusClass:'badge-live', paid:'bKash', amount:'৳60.00', cancellable:true },
+  d08:    { title:'D08 · Bashundhara City', sub:'28 Jul · 3:00 PM – 5:00 PM', code:'PW-3A19-D08', status:'COMPLETED', statusClass:'', paid:'Nagad', amount:'৳50.00', cancellable:false },
+  b04:    { title:'B04 · Rapa Plaza', sub:'25 Jul · 10:00 AM – 12:00 PM', code:'PW-9C02-B04', status:'COMPLETED', statusClass:'', paid:'bKash', amount:'৳50.00', cancellable:false }
+};
+function openBooking(key){
+  const b = bookingData[key];
+  document.getElementById('bd-title').textContent = b.title;
+  document.getElementById('bd-sub').textContent = b.sub;
+  document.getElementById('bd-code').textContent = b.code;
+  document.getElementById('bd-paid').textContent = b.paid;
+  document.getElementById('bd-amount').textContent = b.amount;
+  const statusEl = document.getElementById('bd-status');
+  statusEl.textContent = b.status;
+  statusEl.className = 'badge ' + (b.statusClass || '');
+  if(!b.statusClass){ statusEl.style.background = '#EDEFF4'; statusEl.style.color = 'var(--ink-dim)'; }
+  else { statusEl.style.background = ''; statusEl.style.color = ''; }
+  document.getElementById('bd-nav-btn').style.display = b.cancellable ? 'block' : 'none';
+  document.getElementById('bd-cancel-btn').style.display = b.cancellable ? 'block' : 'none';
+  document.getElementById('bd-feedback-btn').style.display = b.cancellable ? 'none' : 'block';
+  go('scr-booking-detail');
+}
+function cancelBooking(){
+  document.getElementById('bd-status').textContent = 'CANCELLED';
+  document.getElementById('bd-status').style.background = '#FDE7E8';
+  document.getElementById('bd-status').style.color = '#B3131B';
+  document.getElementById('bd-nav-btn').style.display = 'none';
+  document.getElementById('bd-cancel-btn').style.display = 'none';
+  document.getElementById('caption').innerHTML = 'Reservation.cancelReservation() called — spot released back to availability.';
+}
+function setDefaultVehicle(el){
+  document.querySelectorAll('#scr-vehicles .badge').forEach(b=>{ b.remove(); });
+  const row = el.closest('.card');
+  el.remove();
+  const badge = document.createElement('span');
+  badge.className = 'badge badge-live';
+  badge.textContent = 'DEFAULT';
+  row.appendChild(badge);
+  const prevDefault = document.querySelectorAll('#scr-vehicles .card')[0];
+  const oldBadge = prevDefault.querySelector('.badge');
+  if(oldBadge){ oldBadge.remove();
+    const btn = document.createElement('button');
+    btn.className = 'mini-btn'; btn.textContent = 'Set default'; btn.onclick = function(){ setDefaultVehicle(this); };
+    prevDefault.appendChild(btn);
+  }
+}
+function addVehicle(){
+  const body = document.querySelector('#scr-vehicles .scr-body');
+  const addBtn = document.querySelector('#scr-vehicles .btn-outline');
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.style.cssText = 'display:flex;align-items:center;gap:12px;';
+  card.innerHTML = '<div style="font-size:22px;">🚙</div><div style="flex:1;"><div style="font-weight:700;font-size:13.5px;">New Vehicle</div><div style="font-size:11px;color:var(--ink-dim);">Tap to edit plate number</div></div>';
+  body.insertBefore(card, addBtn);
+}
+function saveProfile(){
+  const msg = document.getElementById('prof-saved');
+  msg.style.display = 'block';
+  setTimeout(()=>{ msg.style.display = 'none'; }, 2200);
+}
+function showDash(which){
+  document.getElementById('tab-operator').classList.toggle('active', which==='operator');
+  document.getElementById('tab-admin').classList.toggle('active', which==='admin');
+  document.getElementById('panel-operator').classList.toggle('active', which==='operator');
+  document.getElementById('panel-admin').classList.toggle('active', which==='admin');
+  document.getElementById('browser-url').textContent = which==='operator' ? 'parkwise.app/operator/dashboard' : 'parkwise.app/admin/dashboard';
+}
+(function buildSpotGrid(){
+  const states = ['free','occ','free','hold','free','occ','free','free',
+                   'occ','free','free','occ','hold','free','occ','free',
+                   'free','free','occ','free','occ','free','hold','free',
+                   'occ','occ','free','free','free','occ','free','occ'];
+  const grid = document.getElementById('spot-grid');
+  states.forEach((s,i)=>{
+    const cell = document.createElement('div');
+    cell.className = 'spot-cell sc-' + (s==='free'?'free':s==='occ'?'occ':'hold');
+    cell.textContent = 'A' + (i+1);
+    grid.appendChild(cell);
+  });
+})();
+let state = { hr: 2, rate: 30 };
+function selectDuration(el){
+  document.querySelectorAll('.dur-btn').forEach(b=>{ b.classList.remove('btn-teal'); b.classList.add('btn-outline'); });
+  el.classList.remove('btn-outline'); el.classList.add('btn-teal');
+  state.hr = parseInt(el.dataset.hr);
+  const total = state.hr * state.rate;
+  document.getElementById('reserve-btn').textContent = 'Reserve Spot · ৳' + total;
+  document.getElementById('confirm-duration').textContent = state.hr + (state.hr===1 ? ' hour' : ' hours');
+  document.getElementById('confirm-total').textContent = '৳' + total.toFixed(2);
+  document.getElementById('pay-btn').textContent = 'Pay ৳' + total.toFixed(2);
+}
+function selectPay(el){
+  document.querySelectorAll('.pay-option').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('paid-via').textContent = el.querySelector('div div').textContent;
+}
+</script>
+</body>
+</html>
